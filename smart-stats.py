@@ -40,7 +40,8 @@ from cPickle import loads, dumps
 from json import dumps as jdumps
 import time
 
-filecache = '/run/shm/zabbix-smart-agent.dumps'
+filecache_template = r'/run/shm/zabbix-smart-agent.%s.dumps'
+
 header_match = {
         'FLAG': 2,
         'VALUE': 3,
@@ -124,6 +125,10 @@ def cachegen(data, filecache):
 
 
 def main(ttl, disk, attr, header, types):
+    if types:
+        filecache = filecache_template % ('%s.%s' % (disk.replace('/', '_'),types))
+    else:
+        filecache = filecache_template % ('%s' % disk.replace('/', '_'))
     if not exists(filecache) or ((time.time() - getmtime(filecache)) > float(ttl)):
         cachegen(get_smart_status(disk, types), filecache)
     print(find_attr(filecache, attr, header))
